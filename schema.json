@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SmartPlateAIAgentSchema",
+  "type": "object",
+  "properties": {
+    "agent_name": { "type": "string", "example": "SmartPlate Meal Planner & Waste Reducer" },
+    "architecture": { "type": "string", "example": "FastAPI Monolithic Backend with Embedded HTML/Tailwind CSS Frontend" },
+    "endpoints": [
+      {
+        "path": "/",
+        "method": "GET",
+        "description": "Serves the integrated frontend user interface."
+      },
+      {
+        "path": "/api/plan-meals",
+        "method": "POST",
+        "description": "Executes autonomous multi-step agentic workflow for meal planning and grocery checklists."
+      }
+    ]
+  },
+  "required": ["agent_name", "architecture", "endpoints"]
+}
+
+
+

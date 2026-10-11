@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartPlate AI Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen p-8">
+    <div class="max-w-2xl mx-auto space-y-8">
+        <header class="border-b border-slate-800 pb-4">
+            <h1 class="text-3xl font-bold tracking-tight text-emerald-400">SmartPlate AI Assistant</h1>
+            <p class="text-slate-400 text-sm mt-1">Real-life agent that prevents food waste, plans weekly meals, and builds grocery lists.</p>
+        </header>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">What's in your fridge? (comma-separated)</label>
+                <input id="ingredients" type="text" value="eggs, rice, tomatoes, onions"
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" />
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Dietary Goal</label>
+                <select id="diet" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+                    <option value="balanced">Balanced & Healthy</option>
+                    <option value="low-carb">Low Carb / Keto</option>
+                    <option value="high-protein">High Protein</option>
+                    <option value="budget">Budget Saver</option>
+                </select>
+            </div>
+
+            <button onclick="runAgent()" id="submitBtn"
+                class="w-full bg-emerald-600 hover:bg-emerald-500 font-medium py-2.5 rounded-lg text-sm transition-colors">
+                Run SmartPlate Agent
+            </button>
+        </div>
+
+        <div id="resultBox" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-6">
+            <div>
+                <h2 class="text-lg font-semibold text-emerald-400 mb-3">Agentic Execution Steps</h2>
+                <div id="stepsList" class="space-y-2"></div>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold text-emerald-400 mb-3">Suggested Recipes</h2>
+                <div id="recipeList" class="grid gap-3"></div>
+            </div>
+            <div>
+                <h2 class="text-lg font-semibold text-emerald-400 mb-3">Automated Grocery Checklist</h2>
+                <ul id="shoppingList" class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function runAgent() {
+            const btn = document.getElementById('submitBtn');
+            const ingredients = document.getElementById('ingredients').value.split(',').map(i => i.trim());
+            const diet = document.getElementById('diet').value;
+
+            btn.innerText = "Agent is planning meals...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/plan-meals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ingredients, dietary_preference: diet })
+                });
+                const data = await response.json();
+
+                document.getElementById('resultBox').classList.remove('hidden');
+
+                const stepsContainer = document.getElementById('stepsList');
+                stepsContainer.innerHTML = data.agent_steps.map(s =>
+                    `<div class="bg-slate-950 p-3 rounded border border-slate-800 text-xs text-slate-300">
+                        <strong class="text-emerald-400">Step ${s.step} [${s.tool}]:</strong> ${s.action}
+                     </div>`
+                ).join('');
+
+                const recipeContainer = document.getElementById('recipeList');
+                recipeContainer.innerHTML = data.suggested_recipes.map(r =>
+                    `<div class="bg-slate-950 p-3 rounded border border-slate-800 flex justify-between items-center text-sm">
+                        <span class="font-medium text-slate-200">${r.title}</span>
+                        <span class="text-xs text-slate-400">Prep: ${r.prep_time}</span>
+                     </div>`
+                ).join('');
+
+                const shopContainer = document.getElementById('shoppingList');
+                shopContainer.innerHTML = data.shopping_list.map(item =>
+                    `<li class="flex items-center gap-2 text-sm text-slate-300 capitalize">
+                        <input type="checkbox" class="rounded border-slate-700 bg-slate-900 text-emerald-500"/> ${item}
+                     </li>`
+                ).join('');
+
+            } catch (err) {
+                alert("Error connecting to backend agent.");
+            } finally {
+                btn.innerText = "Run SmartPlate Agent";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
